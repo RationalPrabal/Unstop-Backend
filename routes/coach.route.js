@@ -91,23 +91,33 @@ coachRouter.patch("/bookSeat",async(req,res)=>{
           function allocateSeatsAcrossRows(seatsNeeded) {
             const sortedSeats = emptySeats
               .filter((seat) => seat.isBooked === false)
-              .sort((a, b) => a.seatNumber - b.seatNumber);
+              .sort((a, b) => (a.seatNumber+7*(a.rowNumber-1)) - (b.seatNumber+7*(b.rowNumber-1)));
         
-            let seatIndex = 0;
-            while (allocatedSeats.length < seatsNeeded && seatIndex < sortedSeats.length) {
-              const seat = sortedSeats[seatIndex];
-              allocatedSeats.push({ seatNumber: seat.seatNumber, rowNumber: seat.rowNumber, _id: seat._id });
-              seat.isBooked = true;
-              seatIndex++;
+            let minDiff = Infinity;
+            let startIndex = -1;
+        
+            for (let i = 0; i <= sortedSeats.length - seatsNeeded; i++) {
+              const diff = (sortedSeats[i + seatsNeeded - 1].seatNumber+7*(sortedSeats[i + seatsNeeded - 1].rowNumber-1)) - (sortedSeats[i].seatNumber+7*(sortedSeats[i].rowNumber-1));
+              if (diff < minDiff) {
+                minDiff = diff;
+                startIndex = i;
+              }
+            }
+        
+            if (startIndex !== -1) {
+              const selectedSeats = sortedSeats.slice(startIndex, startIndex + seatsNeeded);
+              for (let i = 0; i < selectedSeats.length; i++) {
+                const seat = selectedSeats[i];
+                allocatedSeats.push({ seatNumber: seat.seatNumber, rowNumber: seat.rowNumber, _id: seat._id });
+                seat.isBooked = true;
+              }
             }
           }
         
           return allocatedSeats;
         }
         
-    
-
-
+        
         
           const seatNumbers =allocateSeats(numberOfSeats);
           const allocatedSeatIds = seatNumbers.map((seat) => seat._id);
