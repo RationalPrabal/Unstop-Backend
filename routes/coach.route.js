@@ -6,6 +6,7 @@ const coachRouter= express.Router();
 coachRouter.get("/",async(req,res)=>{
     try {
     const seats= await seatModel.find()
+    seats.sort((a,b)=>((a.seatNumber+7*(a.rowNumber-1))-(b.seatNumber+7*(b.rowNumber-1))))
     res.send(seats)
     } catch (error) {
         res.status(400).send(error.message)
